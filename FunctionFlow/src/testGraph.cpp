@@ -17,9 +17,21 @@ struct Runner {
 
 #include "glog/logging.h"
 
+/*
+ *
+ *
+ *                  input
+ *                 /     \
+ *                /       \
+ *                r1      r2
+ *                \        /
+ *                 \      /
+ *                   join
+ *                     |
+ *                   finish
+ * 函数调用流程图如上,接受到输入,input函数转发给r1 r2函数,两个函数分别生成一个std::vector<int>,汇总到joint函数,最后将参数传递给finish函数.
+ */
 int main() {
-    int result = 0;
-
     graph g;
     broadcast_node<int> input(g);
     Runner runner1;
@@ -29,25 +41,25 @@ int main() {
     runner2.id = 200;
     function_node<int, std::vector<int> > r2(g, unlimited, runner2);
 
-    join_node<tbb::flow::tuple<std::vector<int>, std::vector<int>>> j(g);
+    join_node<tbb::flow::tuple<std::vector<int>, std::vector<int>>> join(g);
 
     function_node<tbb::flow::tuple<std::vector<int>, std::vector<int>>, int>
             finish(g, unlimited,
                    [](const tbb::flow::tuple<std::vector<int>, std::vector<int>> &t2) {
-                       LOG(INFO) << std::get<0>(t2)[0] << "     " << std::get<1>(t2)[0];
+                       LOG(INFO) << std::get<0>(t2)[0] << " " << std::get<0>(t2).size() << "     " << std::get<1>(t2)[0]
+                                 << " " << std::get<0>(t2).size();
                        return 1;
                    });
 
     make_edge(input, r1);
     make_edge(input, r2);
-    make_edge(r1, get<0>(j.input_ports()));
-    make_edge(r2, get<1>(j.input_ports()));
-    make_edge(j, finish);
+    make_edge(r1, get<0>(join.input_ports()));
+    make_edge(r2, get<1>(join.input_ports()));
+    make_edge(join, finish);
 
 //    for (int i = 1; i <= 10; ++i)
     input.try_put(2);
     g.wait_for_all();
 
-    printf("Final result is %d\n", result);
     return 0;
 }
