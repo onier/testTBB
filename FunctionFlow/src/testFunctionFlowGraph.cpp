@@ -31,7 +31,7 @@ struct Runner {
  *                   join
  *                     |
  *                   finish
- * 函数调用流程图如上,接受到输入,input函数转发给r1 .. r5函数,两个函数分别生成一个std::vector<int>,汇总到joint函数,最后将参数传递给finish函数.
+ * 函数调用流程图如上,接受到输入,input函数转发给r1 .. r5函数,每个函数分别生成一个std::vector<int>,汇总到joint函数,最后将参数传递给finish函数.
  * r1到r5完全并行状态
  */
 int main() {
